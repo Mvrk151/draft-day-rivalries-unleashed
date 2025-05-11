@@ -96,15 +96,15 @@
 
 .pitch-background {
   background-color: #0FA866;
-  background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M50 50 L30 30 L70 30 Z' fill='%230A8E5312'/%3E%3Cpath d='M50 50 L30 70 L70 70 Z' fill='%230A8E5312'/%3E%3C/svg%3E");
-  background-size: 100px 100px;
+  background-image: url("data:image/svg+xml,%3Csvg width='120' height='120' viewBox='0 0 120 120' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M60 60 L40 40 L80 40 Z' fill='%230A8E5312'/%3E%3Cpath d='M60 60 L40 80 L80 80 Z' fill='%230A8E5312'/%3E%3Cpath d='M40 60 L60 40 L60 80 Z' fill='%230A8E5308'/%3E%3Cpath d='M80 60 L60 40 L60 80 Z' fill='%230A8E5308'/%3E%3C/svg%3E");
+  background-size: 120px 120px;
 }
 
 .player-card {
-  transition: all 0.2s ease-in-out;
+  transition: all 0.3s ease-in-out;
 }
 
 .player-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
