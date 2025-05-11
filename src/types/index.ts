@@ -9,6 +9,7 @@ export interface FootballPlayer {
   id: string;
   name: string;
   position: 'GK' | 'DEF' | 'MID' | 'FWD';
+  specificPosition?: 'GK' | 'LB' | 'LCB' | 'RCB' | 'RB' | 'LCM' | 'CAM' | 'RCM' | 'LW' | 'ST' | 'RW';
   team: string;
   league: string;
   image?: string;
@@ -28,6 +29,6 @@ export interface Draft {
   teams: DraftTeam[];
   status: 'setup' | 'in_progress' | 'completed';
   currentTeamIndex: number;
-  currentPositionDrafting?: 'GK' | 'DEF' | 'MID' | 'FWD';
+  currentPositionDrafting?: 'GK' | 'LB' | 'LCB' | 'RCB' | 'RB' | 'LCM' | 'CAM' | 'RCM' | 'LW' | 'ST' | 'RW';
   createdAt: Date;
 }

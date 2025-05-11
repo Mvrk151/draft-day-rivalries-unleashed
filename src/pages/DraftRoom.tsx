@@ -8,15 +8,38 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
 import Navigation from "@/components/Navigation";
 import { Draft, FootballPlayer } from "@/types";
-import { mockDrafts, getPlayersByMode, selectPlayer, aiDraftPick } from "@/data/mockData";
+import { mockDrafts, getPlayersByMode, selectPlayer } from "@/data/mockData";
 import { useAuth } from "@/contexts/AuthContext";
+
+const positionsMap = {
+  'GK': { label: 'Goalkeeper', className: 'bottom-[5%] left-1/2 -translate-x-1/2', color: 'bg-team-gold text-black' },
+  'LB': { label: 'Left Back', className: 'bottom-[30%] left-[10%]', color: 'bg-team-blue text-white' },
+  'LCB': { label: 'Left Center Back', className: 'bottom-[30%] left-[30%]', color: 'bg-team-blue text-white' },
+  'RCB': { label: 'Right Center Back', className: 'bottom-[30%] right-[30%]', color: 'bg-team-blue text-white' },
+  'RB': { label: 'Right Back', className: 'bottom-[30%] right-[10%]', color: 'bg-team-blue text-white' },
+  'LCM': { label: 'Left Center Mid', className: 'top-[50%] left-[30%]', color: 'bg-pitch-dark text-white' },
+  'CAM': { label: 'Center Attack Mid', className: 'top-[50%] left-1/2 -translate-x-1/2', color: 'bg-amber-500 text-black' },
+  'RCM': { label: 'Right Center Mid', className: 'top-[50%] right-[30%]', color: 'bg-pitch-dark text-white' },
+  'LW': { label: 'Left Wing', className: 'top-[20%] left-[15%]', color: 'bg-team-red text-white' },
+  'ST': { label: 'Striker', className: 'top-[20%] left-1/2 -translate-x-1/2', color: 'bg-team-red text-white' },
+  'RW': { label: 'Right Wing', className: 'top-[20%] right-[15%]', color: 'bg-team-red text-white' },
+};
+
+const positionCategories = {
+  'GK': 'GK',
+  'LB': 'DEF', 'LCB': 'DEF', 'RCB': 'DEF', 'RB': 'DEF',
+  'LCM': 'MID', 'CAM': 'MID', 'RCM': 'MID',
+  'LW': 'FWD', 'ST': 'FWD', 'RW': 'FWD'
+};
 
 const DraftRoom = () => {
   const { draftId } = useParams();
   const [draft, setDraft] = useState<Draft | null>(null);
   const [availablePlayers, setAvailablePlayers] = useState<FootballPlayer[]>([]);
-  const [currentFilter, setCurrentFilter] = useState<"GK" | "DEF" | "MID" | "FWD" | "ALL">("ALL");
+  const [filteredPlayers, setFilteredPlayers] = useState<FootballPlayer[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedPosition, setSelectedPosition] = useState<string | null>(null);
+  const [showPositionSelector, setShowPositionSelector] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -27,23 +50,19 @@ const DraftRoom = () => {
   // Check if it's the user's turn
   const isUserTurn = draft?.teams[draft?.currentTeamIndex || 0]?.owner.id === user?.id;
   
-  // Determine which position to pick next based on team needs
-  const getNextPositionToDraft = () => {
+  // Get position status for team formation
+  const getPositionStatus = (position: string) => {
+    if (!userTeam) return "empty";
+    
+    const playerWithPosition = userTeam.players.find(p => p.specificPosition === position);
+    return playerWithPosition ? "filled" : "empty";
+  };
+  
+  // Get player in position
+  const getPlayerInPosition = (position: string) => {
     if (!userTeam) return null;
     
-    const teamPositionCounts = {
-      GK: userTeam.players.filter(p => p.position === 'GK').length,
-      DEF: userTeam.players.filter(p => p.position === 'DEF').length,
-      MID: userTeam.players.filter(p => p.position === 'MID').length,
-      FWD: userTeam.players.filter(p => p.position === 'FWD').length
-    };
-    
-    if (teamPositionCounts.GK < 1) return "GK";
-    if (teamPositionCounts.DEF < 4) return "DEF";
-    if (teamPositionCounts.MID < 3) return "MID";
-    if (teamPositionCounts.FWD < 3) return "FWD";
-    
-    return null; // Team is complete
+    return userTeam.players.find(p => p.specificPosition === position);
   };
   
   // Load draft data
@@ -81,51 +100,55 @@ const DraftRoom = () => {
     loadDraft();
   }, [draftId, navigate, toast]);
   
-  // Make AI picks if it's AI's turn
+  // Handle filtering players by selected position
   useEffect(() => {
-    if (!draft || !draftId) return;
-    
-    const currentTeam = draft.teams[draft.currentTeamIndex];
-    if (!currentTeam) return;
-    
-    // If it's AI's turn, make a pick after a short delay
-    if (currentTeam.owner.id.startsWith('ai-') && draft.status !== 'completed') {
-      const timeoutId = setTimeout(() => {
-        const updatedDraft = aiDraftPick(draftId);
-        if (updatedDraft) {
-          setDraft(updatedDraft);
-          
-          // Update available players
-          const allPlayers = getPlayersByMode(updatedDraft.mode);
-          const draftedPlayerIds = updatedDraft.teams.flatMap(team => team.players.map(p => p.id));
-          const undraftedPlayers = allPlayers.filter(p => !draftedPlayerIds.includes(p.id));
-          setAvailablePlayers(undraftedPlayers);
-          
-          // If the draft is now complete, redirect to view page
-          if (updatedDraft.status === 'completed') {
-            toast({
-              title: "Draft Complete!",
-              description: "All teams have completed their selection.",
-            });
-            navigate(`/draft/view/${draftId}`);
-          }
-        }
-      }, 1500); // 1.5 second delay for AI picks
-      
-      return () => clearTimeout(timeoutId);
+    if (selectedPosition && availablePlayers.length > 0) {
+      const category = positionCategories[selectedPosition as keyof typeof positionCategories];
+      const players = availablePlayers.filter(player => {
+        const matchesCategory = player.position === category;
+        const matchesSearch = player.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                             player.team.toLowerCase().includes(searchTerm.toLowerCase());
+        return matchesCategory && matchesSearch;
+      });
+      setFilteredPlayers(players);
+    } else {
+      setFilteredPlayers([]);
     }
-  }, [draft, draftId, navigate, toast]);
+  }, [selectedPosition, availablePlayers, searchTerm]);
   
   // Handle player selection
   const handleSelectPlayer = (playerId: string) => {
-    if (!draft || !draftId || !user || !isUserTurn) return;
+    if (!draft || !draftId || !user || !isUserTurn || !selectedPosition) {
+      return;
+    }
     
     const currentTeam = draft.teams[draft.currentTeamIndex];
     if (currentTeam.owner.id !== user.id) return;
     
     try {
+      // First get the player to check position
+      const player = availablePlayers.find(p => p.id === playerId);
+      if (!player) return;
+      
+      // Verify player position matches selected position category
+      const requiredCategory = positionCategories[selectedPosition as keyof typeof positionCategories];
+      if (player.position !== requiredCategory) {
+        toast({
+          title: "Position mismatch",
+          description: `This player can't play in the ${positionsMap[selectedPosition as keyof typeof positionsMap].label} position.`,
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Create a copy of the player with the specific position
+      const playerWithPosition = {
+        ...player,
+        specificPosition: selectedPosition as any
+      };
+      
       // Make the selection
-      const updatedDraft = selectPlayer(draftId, playerId, currentTeam.id);
+      const updatedDraft = selectPlayer(draftId, playerId, currentTeam.id, selectedPosition as any);
       if (updatedDraft) {
         setDraft(updatedDraft);
         
@@ -135,9 +158,13 @@ const DraftRoom = () => {
         const undraftedPlayers = allPlayers.filter(p => !draftedPlayerIds.includes(p.id));
         setAvailablePlayers(undraftedPlayers);
         
+        // Reset position selection and close modal
+        setSelectedPosition(null);
+        setShowPositionSelector(false);
+        
         toast({
           title: "Player Selected",
-          description: `You've added a player to your team.`,
+          description: `You've added ${player.name} as ${positionsMap[selectedPosition as keyof typeof positionsMap].label}`,
         });
         
         // If the draft is now complete, redirect to view page
@@ -158,13 +185,28 @@ const DraftRoom = () => {
     }
   };
   
-  // Filter players by position and search term
-  const filteredPlayers = availablePlayers.filter(player => {
-    const matchesPosition = currentFilter === "ALL" || player.position === currentFilter;
-    const matchesSearch = player.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          player.team.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesPosition && matchesSearch;
-  });
+  const handlePositionClick = (position: string) => {
+    if (!isUserTurn) {
+      toast({
+        title: "Not your turn",
+        description: "Please wait for your turn to select a player.",
+      });
+      return;
+    }
+    
+    // Check if position is already filled
+    if (userTeam?.players.some(p => p.specificPosition === position)) {
+      toast({
+        title: "Position already filled",
+        description: "This position already has a player assigned.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setSelectedPosition(position);
+    setShowPositionSelector(true);
+  };
   
   // Get current team drafting
   const currentTeam = draft?.teams[draft?.currentTeamIndex || 0];
@@ -209,18 +251,13 @@ const DraftRoom = () => {
                 <span className="font-medium mr-2">Teams:</span>
                 {draft.teams.length}
               </div>
-              
-              <div className="bg-white p-2 px-4 rounded-lg border flex items-center">
-                <span className="font-medium mr-2">Formation:</span>
-                4-3-3
-              </div>
             </div>
           </div>
           
           {/* Current Turn Indicator */}
           <div className="bg-white p-4 rounded-lg border mb-8">
             <h2 className="text-lg font-semibold mb-2">
-              {isUserTurn ? "It's your turn to draft!" : `Waiting for ${currentTeam?.owner.username} to make a pick...`}
+              {isUserTurn ? "It's your turn to draft!" : `Waiting for ${currentTeam?.owner.username}'s turn...`}
             </h2>
             <div className="flex items-center">
               <div 
@@ -229,82 +266,71 @@ const DraftRoom = () => {
               <p>
                 {isUserTurn ? (
                   <>
-                    Pick a <strong>{getNextPositionToDraft() || 'player'}</strong> for your team
+                    Click on an empty position to select a player
                   </>
                 ) : (
-                  "AI is making its selection..."
+                  "Another player is making a selection..."
                 )}
               </p>
             </div>
           </div>
           
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Player Selection Panel */}
+            {/* Formation View */}
             <div className="lg:col-span-2">
               <Card>
                 <CardHeader>
-                  <CardTitle>Available Players</CardTitle>
+                  <CardTitle>Team Formation</CardTitle>
                   <CardDescription>
-                    Select players to build your team in 4-3-3 formation
+                    Click on a position to select a player - 4-3-3 formation
                   </CardDescription>
-                  
-                  {/* Search and Filter */}
-                  <div className="flex flex-col sm:flex-row gap-4 mt-4">
-                    <div className="flex-1">
-                      <input
-                        type="text"
-                        placeholder="Search players or teams..."
-                        className="w-full p-2 border rounded-md"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                      />
-                    </div>
-                    
-                    <Tabs value={currentFilter} onValueChange={(value) => setCurrentFilter(value as any)} className="w-full sm:w-auto">
-                      <TabsList>
-                        <TabsTrigger value="ALL">All</TabsTrigger>
-                        <TabsTrigger value="GK">GK</TabsTrigger>
-                        <TabsTrigger value="DEF">DEF</TabsTrigger>
-                        <TabsTrigger value="MID">MID</TabsTrigger>
-                        <TabsTrigger value="FWD">FWD</TabsTrigger>
-                      </TabsList>
-                    </Tabs>
-                  </div>
                 </CardHeader>
                 
                 <CardContent>
-                  {filteredPlayers.length > 0 ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                      {filteredPlayers.map((player) => (
-                        <div
-                          key={player.id}
-                          className={`player-card bg-white border rounded-lg overflow-hidden shadow-sm ${
-                            isUserTurn ? 'cursor-pointer hover:border-team-blue' : 'opacity-70'
-                          }`}
-                          onClick={() => isUserTurn && handleSelectPlayer(player.id)}
+                  <div className="pitch-background bg-pitch h-[600px] w-full max-w-2xl mx-auto rounded-xl shadow-lg overflow-hidden relative">
+                    {/* Field lines */}
+                    <div className="absolute inset-0">
+                      <div className="border-2 border-white opacity-50 h-full w-full"></div>
+                      
+                      {/* Center circle */}
+                      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-20 h-20 border-2 border-white rounded-full opacity-50"></div>
+                      
+                      {/* Center line */}
+                      <div className="absolute top-1/2 left-0 transform -translate-y-1/2 w-full h-0.5 bg-white opacity-50"></div>
+                      
+                      {/* Penalty boxes */}
+                      <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-32 h-16 border-b-2 border-x-2 border-white opacity-50"></div>
+                      <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-32 h-16 border-t-2 border-x-2 border-white opacity-50"></div>
+                    </div>
+                    
+                    {/* Position spots */}
+                    {Object.entries(positionsMap).map(([position, {label, className, color}]) => {
+                      const playerInPosition = getPlayerInPosition(position);
+                      const isEmpty = getPositionStatus(position) === "empty";
+                      
+                      return (
+                        <div 
+                          key={position}
+                          className={`absolute ${className} flex flex-col items-center cursor-pointer transition-transform hover:scale-105`}
+                          onClick={() => handlePositionClick(position)}
                         >
-                          <div className={`h-2 ${
-                            player.position === 'GK' ? 'bg-team-gold' : 
-                            player.position === 'DEF' ? 'bg-team-blue' : 
-                            player.position === 'MID' ? 'bg-green-500' : 
-                            'bg-team-red'
-                          }`}></div>
-                          <div className="p-4">
-                            <div className="flex justify-between items-start mb-2">
-                              <h3 className="font-semibold">{player.name}</h3>
-                              <Badge variant="outline">{player.position}</Badge>
-                            </div>
-                            <p className="text-sm text-gray-600">{player.team}</p>
-                            <p className="text-xs text-gray-500">{player.league}</p>
+                          <div className={`w-12 h-12 ${color} rounded-full flex items-center justify-center shadow-md mb-1`}>
+                            <span className="font-bold text-sm">{position}</span>
+                          </div>
+                          <div className="bg-white/80 backdrop-blur-sm px-2 py-1 rounded text-center max-w-[120px]">
+                            {isEmpty ? (
+                              <span className="text-gray-600 italic text-xs">Click to select</span>
+                            ) : (
+                              <>
+                                <div className="font-semibold text-xs truncate">{playerInPosition?.name}</div>
+                                <div className="text-[10px] text-gray-600 truncate">{playerInPosition?.team}</div>
+                              </>
+                            )}
                           </div>
                         </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8">
-                      <p className="text-gray-500">No players match your search or filter.</p>
-                    </div>
-                  )}
+                      );
+                    })}
+                  </div>
                 </CardContent>
               </Card>
             </div>
@@ -313,7 +339,7 @@ const DraftRoom = () => {
             <div>
               <Card>
                 <CardHeader>
-                  <CardTitle>Team Status</CardTitle>
+                  <CardTitle>Teams Status</CardTitle>
                   <CardDescription>
                     Current teams and their progress
                   </CardDescription>
@@ -366,7 +392,7 @@ const DraftRoom = () => {
                                 {team.players.map(player => (
                                   <div key={player.id} className="flex justify-between">
                                     <span>{player.name}</span>
-                                    <span className="text-gray-500">{player.position}</span>
+                                    <span className="text-gray-500">{player.specificPosition || player.position}</span>
                                   </div>
                                 ))}
                               </div>
@@ -392,6 +418,89 @@ const DraftRoom = () => {
           </div>
         </div>
       </main>
+      
+      {/* Player Selection Modal */}
+      {showPositionSelector && selectedPosition && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <Card className="w-full max-w-3xl max-h-[80vh] overflow-hidden flex flex-col">
+            <CardHeader className="border-b">
+              <div className="flex justify-between items-center">
+                <div>
+                  <CardTitle>Select {positionsMap[selectedPosition as keyof typeof positionsMap].label}</CardTitle>
+                  <CardDescription>
+                    Choose a player for the {selectedPosition} position
+                  </CardDescription>
+                </div>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={() => {
+                    setShowPositionSelector(false);
+                    setSelectedPosition(null);
+                  }}
+                >
+                  ✕
+                </Button>
+              </div>
+              <div className="mt-4">
+                <input
+                  type="text"
+                  placeholder="Search players or teams..."
+                  className="w-full p-2 border rounded-md"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+            </CardHeader>
+            
+            <CardContent className="overflow-y-auto flex-grow py-4">
+              {filteredPlayers.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                  {filteredPlayers.map((player) => (
+                    <div
+                      key={player.id}
+                      className="player-card bg-white border rounded-lg overflow-hidden shadow-sm cursor-pointer hover:border-team-blue"
+                      onClick={() => handleSelectPlayer(player.id)}
+                    >
+                      <div className={`h-2 ${
+                        player.position === 'GK' ? 'bg-team-gold' : 
+                        player.position === 'DEF' ? 'bg-team-blue' : 
+                        player.position === 'MID' ? 'bg-green-500' : 
+                        'bg-team-red'
+                      }`}></div>
+                      <div className="p-4">
+                        <div className="flex justify-between items-start mb-2">
+                          <h3 className="font-semibold">{player.name}</h3>
+                          <Badge variant="outline">{player.position}</Badge>
+                        </div>
+                        <p className="text-sm text-gray-600">{player.team}</p>
+                        <p className="text-xs text-gray-500">{player.league}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-gray-500">No players match your search or filter.</p>
+                </div>
+              )}
+            </CardContent>
+            
+            <div className="p-4 border-t">
+              <Button 
+                variant="outline" 
+                className="w-full"
+                onClick={() => {
+                  setShowPositionSelector(false);
+                  setSelectedPosition(null);
+                }}
+              >
+                Cancel
+              </Button>
+            </div>
+          </Card>
+        </div>
+      )}
     </div>
   );
 };

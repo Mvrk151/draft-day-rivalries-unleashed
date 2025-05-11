@@ -113,7 +113,7 @@ export const createDraft = (
     teams: Array(numberOfTeams).fill(null).map((_, i) => ({
       id: Math.random().toString(36).substr(2, 9),
       name: i === 0 ? `${username}'s Team` : `Team ${i + 1}`,
-      owner: i === 0 ? { id: userId, username, email: '' } : { id: `ai-${i}`, username: `AI Player ${i}`, email: '' },
+      owner: i === 0 ? { id: userId, username, email: '' } : { id: `user-${i}`, username: `Player ${i}`, email: '' },
       players: []
     })),
     status: 'setup',
@@ -126,7 +126,12 @@ export const createDraft = (
 };
 
 // Function to select a player in the draft
-export const selectPlayer = (draftId: string, playerId: string, teamId: string): Draft | null => {
+export const selectPlayer = (
+  draftId: string, 
+  playerId: string, 
+  teamId: string, 
+  specificPosition?: string
+): Draft | null => {
   const draftIndex = mockDrafts.findIndex(d => d.id === draftId);
   if (draftIndex === -1) return null;
   
@@ -134,7 +139,7 @@ export const selectPlayer = (draftId: string, playerId: string, teamId: string):
   const playerIndex = mockPlayers.findIndex(p => p.id === playerId);
   if (playerIndex === -1) return null;
   
-  const player = mockPlayers[playerIndex];
+  const player = {...mockPlayers[playerIndex]};
   const teamIndex = draft.teams.findIndex(t => t.id === teamId);
   if (teamIndex === -1) return null;
   
@@ -142,6 +147,23 @@ export const selectPlayer = (draftId: string, playerId: string, teamId: string):
   const sameTeamCount = draft.teams[teamIndex].players.filter(p => p.team === player.team).length;
   if (sameTeamCount >= 2) {
     throw new Error('Maximum 2 players from the same team allowed');
+  }
+  
+  // Set specific position if provided
+  if (specificPosition) {
+    player.specificPosition = specificPosition as any;
+  }
+  
+  // Check if position is valid for this player's general position
+  const positionMap: Record<string, string[]> = {
+    'GK': ['GK'],
+    'DEF': ['LB', 'LCB', 'RCB', 'RB'],
+    'MID': ['LCM', 'CAM', 'RCM'],
+    'FWD': ['LW', 'ST', 'RW']
+  };
+  
+  if (specificPosition && !positionMap[player.position].includes(specificPosition)) {
+    throw new Error(`This player cannot play as ${specificPosition}`);
   }
   
   // Check if team already has enough players of this position
@@ -157,6 +179,11 @@ export const selectPlayer = (draftId: string, playerId: string, teamId: string):
     throw new Error(`Maximum ${maxPositionCounts[player.position]} ${player.position} players allowed`);
   }
   
+  // Check if specific position is already taken by this team
+  if (specificPosition && draft.teams[teamIndex].players.some(p => p.specificPosition === specificPosition)) {
+    throw new Error(`Position ${specificPosition} is already filled`);
+  }
+  
   // Add player to team
   draft.teams[teamIndex].players.push(player);
   
@@ -164,12 +191,17 @@ export const selectPlayer = (draftId: string, playerId: string, teamId: string):
   draft.currentTeamIndex = (draft.currentTeamIndex + 1) % draft.teams.length;
   
   // Check if draft is complete
-  const isComplete = draft.teams.every(team => 
-    team.players.filter(p => p.position === 'GK').length === 1 &&
-    team.players.filter(p => p.position === 'DEF').length === 4 &&
-    team.players.filter(p => p.position === 'MID').length === 3 &&
-    team.players.filter(p => p.position === 'FWD').length === 3
-  );
+  const isComplete = draft.teams.every(team => {
+    const specificPositions = [
+      'GK', 'LB', 'LCB', 'RCB', 'RB', 
+      'LCM', 'CAM', 'RCM', 
+      'LW', 'ST', 'RW'
+    ];
+    
+    return specificPositions.every(pos => 
+      team.players.some(p => p.specificPosition === pos)
+    );
+  });
   
   if (isComplete) {
     draft.status = 'completed';
@@ -179,73 +211,4 @@ export const selectPlayer = (draftId: string, playerId: string, teamId: string):
   
   mockDrafts[draftIndex] = draft;
   return draft;
-};
-
-// AI player auto draft
-export const aiDraftPick = (draftId: string): Draft | null => {
-  const draftIndex = mockDrafts.findIndex(d => d.id === draftId);
-  if (draftIndex === -1) return null;
-  
-  const draft = {...mockDrafts[draftIndex]};
-  const currentTeam = draft.teams[draft.currentTeamIndex];
-  
-  // Check if current team is AI
-  if (!currentTeam.owner.id.startsWith('ai-')) {
-    return draft; // Not an AI team, so just return the draft unchanged
-  }
-  
-  // Get available players for the current mode
-  const availablePlayers = getPlayersByMode(draft.mode);
-  
-  // Filter out already drafted players
-  const draftedPlayerIds = draft.teams.flatMap(team => team.players.map(p => p.id));
-  const undraftedPlayers = availablePlayers.filter(p => !draftedPlayerIds.includes(p.id));
-  
-  // Determine which position to draft next based on team needs
-  const teamPositionCounts = {
-    GK: currentTeam.players.filter(p => p.position === 'GK').length,
-    DEF: currentTeam.players.filter(p => p.position === 'DEF').length,
-    MID: currentTeam.players.filter(p => p.position === 'MID').length,
-    FWD: currentTeam.players.filter(p => p.position === 'FWD').length
-  };
-  
-  // Determine priority position (position with fewest players relative to max)
-  const positionPriorities = [
-    { position: 'GK', current: teamPositionCounts.GK, max: 1 },
-    { position: 'DEF', current: teamPositionCounts.DEF, max: 4 },
-    { position: 'MID', current: teamPositionCounts.MID, max: 3 },
-    { position: 'FWD', current: teamPositionCounts.FWD, max: 3 }
-  ].filter(p => p.current < p.max)
-    .sort((a, b) => (a.current / a.max) - (b.current / b.max));
-  
-  if (positionPriorities.length === 0) {
-    return draft; // Team is complete
-  }
-  
-  const targetPosition = positionPriorities[0].position as 'GK' | 'DEF' | 'MID' | 'FWD';
-  
-  // Find available players of that position
-  const availablePositionPlayers = undraftedPlayers.filter(p => p.position === targetPosition);
-  
-  if (availablePositionPlayers.length === 0) {
-    return draft; // No available players for target position
-  }
-  
-  // Filter for teams that current team doesn't already have too many players from
-  const teamCounts: Record<string, number> = {};
-  
-  currentTeam.players.forEach(p => {
-    teamCounts[p.team] = (teamCounts[p.team] || 0) + 1;
-  });
-  
-  const validPlayers = availablePositionPlayers.filter(p => (teamCounts[p.team] || 0) < 2);
-  
-  if (validPlayers.length === 0) {
-    return draft; // No valid players available
-  }
-  
-  // Randomly select a player
-  const selectedPlayer = validPlayers[Math.floor(Math.random() * validPlayers.length)];
-  
-  return selectPlayer(draftId, selectedPlayer.id, currentTeam.id);
 };

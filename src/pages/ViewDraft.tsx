@@ -10,12 +10,25 @@ import { useToast } from "@/components/ui/use-toast";
 import { Draft } from "@/types";
 import { mockDrafts } from "@/data/mockData";
 
+const positionsMap = {
+  'GK': { label: 'Goalkeeper', className: 'bottom-[5%] left-1/2 -translate-x-1/2', color: 'bg-team-gold text-black' },
+  'LB': { label: 'Left Back', className: 'bottom-[30%] left-[10%]', color: 'bg-team-blue text-white' },
+  'LCB': { label: 'Left Center Back', className: 'bottom-[30%] left-[30%]', color: 'bg-team-blue text-white' },
+  'RCB': { label: 'Right Center Back', className: 'bottom-[30%] right-[30%]', color: 'bg-team-blue text-white' },
+  'RB': { label: 'Right Back', className: 'bottom-[30%] right-[10%]', color: 'bg-team-blue text-white' },
+  'LCM': { label: 'Left Center Mid', className: 'top-[50%] left-[30%]', color: 'bg-pitch-dark text-white' },
+  'CAM': { label: 'Center Attack Mid', className: 'top-[50%] left-1/2 -translate-x-1/2', color: 'bg-amber-500 text-black' },
+  'RCM': { label: 'Right Center Mid', className: 'top-[50%] right-[30%]', color: 'bg-pitch-dark text-white' },
+  'LW': { label: 'Left Wing', className: 'top-[20%] left-[15%]', color: 'bg-team-red text-white' },
+  'ST': { label: 'Striker', className: 'top-[20%] left-1/2 -translate-x-1/2', color: 'bg-team-red text-white' },
+  'RW': { label: 'Right Wing', className: 'top-[20%] right-[15%]', color: 'bg-team-red text-white' },
+};
+
 const FormationView = ({ team }: { team: Draft['teams'][0] }) => {
-  // Get players by position
-  const goalkeepers = team.players.filter(p => p.position === 'GK');
-  const defenders = team.players.filter(p => p.position === 'DEF');
-  const midfielders = team.players.filter(p => p.position === 'MID');
-  const forwards = team.players.filter(p => p.position === 'FWD');
+  // Get player for each specific position
+  const getPlayerInPosition = (position: string) => {
+    return team.players.find(p => p.specificPosition === position);
+  };
   
   return (
     <div className="pitch-background bg-pitch h-[600px] w-full max-w-md mx-auto rounded-xl shadow-lg overflow-hidden relative">
@@ -34,65 +47,22 @@ const FormationView = ({ team }: { team: Draft['teams'][0] }) => {
         <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-32 h-16 border-t-2 border-x-2 border-white opacity-50"></div>
       </div>
       
-      {/* Forwards */}
-      <div className="absolute top-[20%] left-0 right-0 flex justify-around">
-        {forwards.map((player, idx) => (
-          <div key={player.id} className="flex flex-col items-center">
-            <div className="w-11 h-11 bg-team-red rounded-full flex items-center justify-center shadow-md mb-1">
-              <span className="text-white font-bold text-sm">FWD</span>
+      {/* Player positions */}
+      {Object.entries(positionsMap).map(([position, {label, className, color}]) => {
+        const player = getPlayerInPosition(position);
+        
+        return player && (
+          <div key={position} className={`absolute ${className} flex flex-col items-center`}>
+            <div className={`w-11 h-11 ${color} rounded-full flex items-center justify-center shadow-md mb-1`}>
+              <span className="font-bold text-sm">{position}</span>
             </div>
             <div className="bg-white/80 backdrop-blur-sm px-2 py-1 rounded text-center max-w-[100px]">
               <div className="font-semibold text-xs truncate">{player.name}</div>
               <div className="text-[10px] text-gray-600 truncate">{player.team}</div>
             </div>
           </div>
-        ))}
-      </div>
-      
-      {/* Midfielders */}
-      <div className="absolute top-[40%] left-0 right-0 flex justify-around">
-        {midfielders.map((player, idx) => (
-          <div key={player.id} className="flex flex-col items-center">
-            <div className="w-11 h-11 bg-pitch-dark rounded-full flex items-center justify-center shadow-md mb-1">
-              <span className="text-white font-bold text-sm">MID</span>
-            </div>
-            <div className="bg-white/80 backdrop-blur-sm px-2 py-1 rounded text-center max-w-[100px]">
-              <div className="font-semibold text-xs truncate">{player.name}</div>
-              <div className="text-[10px] text-gray-600 truncate">{player.team}</div>
-            </div>
-          </div>
-        ))}
-      </div>
-      
-      {/* Defenders */}
-      <div className="absolute top-[60%] left-0 right-0 flex justify-around">
-        {defenders.map((player, idx) => (
-          <div key={player.id} className="flex flex-col items-center">
-            <div className="w-11 h-11 bg-team-blue rounded-full flex items-center justify-center shadow-md mb-1">
-              <span className="text-white font-bold text-sm">DEF</span>
-            </div>
-            <div className="bg-white/80 backdrop-blur-sm px-2 py-1 rounded text-center max-w-[100px]">
-              <div className="font-semibold text-xs truncate">{player.name}</div>
-              <div className="text-[10px] text-gray-600 truncate">{player.team}</div>
-            </div>
-          </div>
-        ))}
-      </div>
-      
-      {/* Goalkeeper */}
-      <div className="absolute bottom-[5%] left-1/2 transform -translate-x-1/2 flex flex-col items-center">
-        {goalkeepers.length > 0 && (
-          <>
-            <div className="w-11 h-11 bg-team-gold rounded-full flex items-center justify-center shadow-md mb-1">
-              <span className="text-black font-bold text-sm">GK</span>
-            </div>
-            <div className="bg-white/80 backdrop-blur-sm px-2 py-1 rounded text-center">
-              <div className="font-semibold text-xs">{goalkeepers[0].name}</div>
-              <div className="text-[10px] text-gray-600">{goalkeepers[0].team}</div>
-            </div>
-          </>
-        )}
-      </div>
+        );
+      })}
     </div>
   );
 };
@@ -235,7 +205,7 @@ const ViewDraft = () => {
                               <div className="font-medium">{player.name}</div>
                               <div className="text-sm text-gray-600">{player.team}</div>
                             </div>
-                            <Badge variant="outline">{player.position}</Badge>
+                            <Badge variant="outline">{player.specificPosition || player.position}</Badge>
                           </div>
                         ))}
                       </div>
@@ -250,7 +220,7 @@ const ViewDraft = () => {
                                 <div className="font-medium">{player.name}</div>
                                 <div className="text-sm text-gray-600">{player.team}</div>
                               </div>
-                              <Badge variant="outline">{player.position}</Badge>
+                              <Badge variant="outline">{player.specificPosition || player.position}</Badge>
                             </div>
                           ))}
                         </div>
@@ -266,7 +236,7 @@ const ViewDraft = () => {
                                 <div className="font-medium">{player.name}</div>
                                 <div className="text-sm text-gray-600">{player.team}</div>
                               </div>
-                              <Badge variant="outline">{player.position}</Badge>
+                              <Badge variant="outline">{player.specificPosition || player.position}</Badge>
                             </div>
                           ))}
                         </div>
@@ -282,7 +252,7 @@ const ViewDraft = () => {
                                 <div className="font-medium">{player.name}</div>
                                 <div className="text-sm text-gray-600">{player.team}</div>
                               </div>
-                              <Badge variant="outline">{player.position}</Badge>
+                              <Badge variant="outline">{player.specificPosition || player.position}</Badge>
                             </div>
                           ))}
                         </div>
