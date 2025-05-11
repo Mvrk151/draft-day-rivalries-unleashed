@@ -1,4 +1,3 @@
-
 import { Draft, FootballPlayer, DraftTeam } from "@/types";
 
 // Mock football players
@@ -158,7 +157,7 @@ export const selectPlayer = (
   const positionMap: Record<string, string[]> = {
     'GK': ['GK'],
     'DEF': ['LB', 'LCB', 'RCB', 'RB'],
-    'MID': ['LCM', 'CAM', 'RCM'],
+    'MID': ['LCM', 'CM', 'RCM'],
     'FWD': ['LW', 'ST', 'RW']
   };
   
@@ -194,7 +193,7 @@ export const selectPlayer = (
   const isComplete = draft.teams.every(team => {
     const specificPositions = [
       'GK', 'LB', 'LCB', 'RCB', 'RB', 
-      'LCM', 'CAM', 'RCM', 
+      'LCM', 'CM', 'RCM', 
       'LW', 'ST', 'RW'
     ];
     

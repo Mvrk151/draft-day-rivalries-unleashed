@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -11,17 +12,17 @@ import { Draft } from "@/types";
 import { mockDrafts } from "@/data/mockData";
 
 const positionsMap = {
-  'GK': { label: 'Goalkeeper', className: 'bottom-[5%] left-1/2 -translate-x-1/2', color: 'bg-team-gold text-black' },
-  'LB': { label: 'Left Back', className: 'bottom-[30%] left-[10%]', color: 'bg-team-blue text-white' },
-  'LCB': { label: 'Left Center Back', className: 'bottom-[30%] left-[30%]', color: 'bg-team-blue text-white' },
-  'RCB': { label: 'Right Center Back', className: 'bottom-[30%] right-[30%]', color: 'bg-team-blue text-white' },
-  'RB': { label: 'Right Back', className: 'bottom-[30%] right-[10%]', color: 'bg-team-blue text-white' },
-  'LCM': { label: 'Left Center Mid', className: 'top-[50%] left-[30%]', color: 'bg-pitch-dark text-white' },
-  'CAM': { label: 'Center Attack Mid', className: 'top-[50%] left-1/2 -translate-x-1/2', color: 'bg-amber-500 text-black' },
-  'RCM': { label: 'Right Center Mid', className: 'top-[50%] right-[30%]', color: 'bg-pitch-dark text-white' },
-  'LW': { label: 'Left Wing', className: 'top-[20%] left-[15%]', color: 'bg-team-red text-white' },
-  'ST': { label: 'Striker', className: 'top-[20%] left-1/2 -translate-x-1/2', color: 'bg-team-red text-white' },
-  'RW': { label: 'Right Wing', className: 'top-[20%] right-[15%]', color: 'bg-team-red text-white' },
+  'GK': { label: 'Goalkeeper', className: 'bottom-[7%] left-1/2 -translate-x-1/2', color: 'bg-white text-black' },
+  'LB': { label: 'Left Back', className: 'bottom-[30%] left-[13%]', color: 'bg-white text-black' },
+  'LCB': { label: 'Left Center Back', className: 'bottom-[22%] left-[30%]', color: 'bg-white text-black' },
+  'RCB': { label: 'Right Center Back', className: 'bottom-[22%] right-[30%]', color: 'bg-white text-black' },
+  'RB': { label: 'Right Back', className: 'bottom-[30%] right-[13%]', color: 'bg-white text-black' },
+  'LCM': { label: 'Left Center Mid', className: 'top-[48%] left-[20%]', color: 'bg-white text-black' },
+  'CM': { label: 'Center Mid', className: 'top-[55%] left-1/2 -translate-x-1/2', color: 'bg-white text-black' },
+  'RCM': { label: 'Right Center Mid', className: 'top-[48%] right-[20%]', color: 'bg-white text-black' },
+  'LW': { label: 'Left Wing', className: 'top-[25%] left-[20%]', color: 'bg-white text-black' },
+  'ST': { label: 'Striker', className: 'top-[18%] left-1/2 -translate-x-1/2', color: 'bg-white text-black' },
+  'RW': { label: 'Right Wing', className: 'top-[25%] right-[20%]', color: 'bg-white text-black' },
 };
 
 const FormationView = ({ team }: { team: Draft['teams'][0] }) => {
@@ -51,15 +52,17 @@ const FormationView = ({ team }: { team: Draft['teams'][0] }) => {
       {Object.entries(positionsMap).map(([position, {label, className, color}]) => {
         const player = getPlayerInPosition(position);
         
-        return player && (
+        return (
           <div key={position} className={`absolute ${className} flex flex-col items-center`}>
-            <div className={`w-11 h-11 ${color} rounded-full flex items-center justify-center shadow-md mb-1`}>
-              <span className="font-bold text-sm">{position}</span>
+            <div className={`w-14 h-14 ${color} rounded-full flex items-center justify-center shadow-md mb-1 border-2 border-gray-200`}>
+              <span className="font-bold text-lg">{position}</span>
             </div>
-            <div className="bg-white/80 backdrop-blur-sm px-2 py-1 rounded text-center max-w-[100px]">
-              <div className="font-semibold text-xs truncate">{player.name}</div>
-              <div className="text-[10px] text-gray-600 truncate">{player.team}</div>
-            </div>
+            {player && (
+              <div className="bg-white/80 backdrop-blur-sm px-2 py-1 rounded text-center max-w-[100px]">
+                <div className="font-semibold text-xs truncate">{player.name}</div>
+                <div className="text-[10px] text-gray-600 truncate">{player.team}</div>
+              </div>
+            )}
           </div>
         );
       })}

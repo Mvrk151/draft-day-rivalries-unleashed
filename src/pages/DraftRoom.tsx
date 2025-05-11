@@ -12,23 +12,23 @@ import { mockDrafts, getPlayersByMode, selectPlayer } from "@/data/mockData";
 import { useAuth } from "@/contexts/AuthContext";
 
 const positionsMap = {
-  'GK': { label: 'Goalkeeper', className: 'bottom-[5%] left-1/2 -translate-x-1/2', color: 'bg-team-gold text-black' },
-  'LB': { label: 'Left Back', className: 'bottom-[30%] left-[10%]', color: 'bg-team-blue text-white' },
-  'LCB': { label: 'Left Center Back', className: 'bottom-[30%] left-[30%]', color: 'bg-team-blue text-white' },
-  'RCB': { label: 'Right Center Back', className: 'bottom-[30%] right-[30%]', color: 'bg-team-blue text-white' },
-  'RB': { label: 'Right Back', className: 'bottom-[30%] right-[10%]', color: 'bg-team-blue text-white' },
-  'LCM': { label: 'Left Center Mid', className: 'top-[50%] left-[30%]', color: 'bg-pitch-dark text-white' },
-  'CAM': { label: 'Center Attack Mid', className: 'top-[50%] left-1/2 -translate-x-1/2', color: 'bg-amber-500 text-black' },
-  'RCM': { label: 'Right Center Mid', className: 'top-[50%] right-[30%]', color: 'bg-pitch-dark text-white' },
-  'LW': { label: 'Left Wing', className: 'top-[20%] left-[15%]', color: 'bg-team-red text-white' },
-  'ST': { label: 'Striker', className: 'top-[20%] left-1/2 -translate-x-1/2', color: 'bg-team-red text-white' },
-  'RW': { label: 'Right Wing', className: 'top-[20%] right-[15%]', color: 'bg-team-red text-white' },
+  'GK': { label: 'Goalkeeper', className: 'bottom-[7%] left-1/2 -translate-x-1/2', color: 'bg-white text-black' },
+  'LB': { label: 'Left Back', className: 'bottom-[30%] left-[13%]', color: 'bg-white text-black' },
+  'LCB': { label: 'Left Center Back', className: 'bottom-[22%] left-[30%]', color: 'bg-white text-black' },
+  'RCB': { label: 'Right Center Back', className: 'bottom-[22%] right-[30%]', color: 'bg-white text-black' },
+  'RB': { label: 'Right Back', className: 'bottom-[30%] right-[13%]', color: 'bg-white text-black' },
+  'LCM': { label: 'Left Center Mid', className: 'top-[48%] left-[20%]', color: 'bg-white text-black' },
+  'CM': { label: 'Center Mid', className: 'top-[55%] left-1/2 -translate-x-1/2', color: 'bg-white text-black' },
+  'RCM': { label: 'Right Center Mid', className: 'top-[48%] right-[20%]', color: 'bg-white text-black' },
+  'LW': { label: 'Left Wing', className: 'top-[25%] left-[20%]', color: 'bg-white text-black' },
+  'ST': { label: 'Striker', className: 'top-[18%] left-1/2 -translate-x-1/2', color: 'bg-white text-black' },
+  'RW': { label: 'Right Wing', className: 'top-[25%] right-[20%]', color: 'bg-white text-black' },
 };
 
 const positionCategories = {
   'GK': 'GK',
   'LB': 'DEF', 'LCB': 'DEF', 'RCB': 'DEF', 'RB': 'DEF',
-  'LCM': 'MID', 'CAM': 'MID', 'RCM': 'MID',
+  'LCM': 'MID', 'CM': 'MID', 'RCM': 'MID',
   'LW': 'FWD', 'ST': 'FWD', 'RW': 'FWD'
 };
 
