@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,7 +62,13 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
-				}
+				},
+				// Custom football draft colors
+				'pitch': '#0FA866',
+				'pitch-dark': '#0A8E53',
+				'team-blue': '#1A365D',
+				'team-gold': '#F6AD55',
+				'team-red': '#E53E3E',
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
