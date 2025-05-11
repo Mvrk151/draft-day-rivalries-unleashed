@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/components/ui/use-toast";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { useAuth } from "@/contexts/AuthContext";
@@ -16,13 +17,70 @@ const NewDraft = () => {
   const [draftName, setDraftName] = useState("");
   const [gameMode, setGameMode] = useState<"champions_league" | "premier_league" | "top_5_leagues">("premier_league");
   const [numberOfTeams, setNumberOfTeams] = useState("2");
+  const [teamNames, setTeamNames] = useState<{[key: string]: string}>({ userTeam: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { toast } = useToast();
+
+  // Generate AI team name placeholders
+  const generateTeamNamePlaceholder = (index: number) => {
+    const options = [
+      "The Champions", "Golden Stars", "Victory United", "Royal FC", 
+      "Elite XI", "Thunder FC", "Phoenix Rising", "Titans FC"
+    ];
+    return options[(index + options.length) % options.length];
+  };
+
+  // Handle team name changes
+  const handleTeamNameChange = (id: string, value: string) => {
+    setTeamNames(prev => ({
+      ...prev,
+      [id]: value
+    }));
+  };
+
+  // Validate team names are unique
+  const validateTeamNames = () => {
+    const names = Object.values(teamNames).filter(name => name.trim() !== "");
+    const uniqueNames = new Set(names);
+    
+    if (names.length !== uniqueNames.size) {
+      toast({
+        title: "Duplicate team names",
+        description: "Each team must have a unique name.",
+        variant: "destructive",
+      });
+      return false;
+    }
+    
+    return true;
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
+    
+    // Generate default team names if empty
+    const updatedTeamNames = { ...teamNames };
+    if (!updatedTeamNames.userTeam.trim()) {
+      updatedTeamNames.userTeam = `${user.username}'s Team`;
+    }
+    
+    const numTeams = parseInt(numberOfTeams);
+    for (let i = 1; i < numTeams; i++) {
+      const teamId = `aiTeam${i}`;
+      if (!updatedTeamNames[teamId] || !updatedTeamNames[teamId].trim()) {
+        updatedTeamNames[teamId] = `AI Team ${i}`;
+      }
+    }
+    
+    setTeamNames(updatedTeamNames);
+    
+    // Validate unique team names
+    if (!validateTeamNames()) {
+      return;
+    }
     
     setIsSubmitting(true);
     
@@ -30,17 +88,62 @@ const NewDraft = () => {
       const draft = createDraft(
         draftName || `${user.username}'s Draft`,
         gameMode,
-        parseInt(numberOfTeams),
+        numTeams,
         user.id,
-        user.username
+        updatedTeamNames.userTeam || `${user.username}'s Team`,
+        Object.entries(updatedTeamNames)
+          .filter(([key]) => key !== 'userTeam')
+          .map(([_, name]) => name)
       );
       
       // Navigate to the draft room
       navigate(`/draft/room/${draft.id}`);
     } catch (error) {
       console.error("Error creating draft:", error);
+      toast({
+        title: "Error creating draft",
+        description: "An error occurred while creating the draft.",
+        variant: "destructive",
+      });
       setIsSubmitting(false);
     }
+  };
+
+  // Render additional team name inputs based on number of teams
+  const renderTeamNameInputs = () => {
+    const inputs = [];
+    const numTeams = parseInt(numberOfTeams);
+    
+    // User team input (always first)
+    inputs.push(
+      <div key="userTeam" className="space-y-2">
+        <Label htmlFor="userTeam">Your Team Name</Label>
+        <Input
+          id="userTeam"
+          placeholder={user ? `${user.username}'s Team` : "My Team"}
+          value={teamNames.userTeam || ''}
+          onChange={(e) => handleTeamNameChange('userTeam', e.target.value)}
+        />
+      </div>
+    );
+    
+    // AI team inputs
+    for (let i = 1; i < numTeams; i++) {
+      const teamId = `aiTeam${i}`;
+      inputs.push(
+        <div key={teamId} className="space-y-2">
+          <Label htmlFor={teamId}>Opponent {i} Name</Label>
+          <Input
+            id={teamId}
+            placeholder={generateTeamNamePlaceholder(i)}
+            value={teamNames[teamId] || ''}
+            onChange={(e) => handleTeamNameChange(teamId, e.target.value)}
+          />
+        </div>
+      );
+    }
+    
+    return inputs;
   };
 
   return (
@@ -106,7 +209,16 @@ const NewDraft = () => {
                   <Label htmlFor="number-of-teams">Number of Teams</Label>
                   <Select 
                     value={numberOfTeams} 
-                    onValueChange={setNumberOfTeams}
+                    onValueChange={(value) => {
+                      setNumberOfTeams(value);
+                      // Initialize team name fields for the new number of teams
+                      const newTeamNames = { userTeam: teamNames.userTeam || '' };
+                      for (let i = 1; i < parseInt(value); i++) {
+                        const teamId = `aiTeam${i}`;
+                        newTeamNames[teamId] = teamNames[teamId] || '';
+                      }
+                      setTeamNames(newTeamNames);
+                    }}
                   >
                     <SelectTrigger id="number-of-teams">
                       <SelectValue placeholder="Select number of teams" />
@@ -119,7 +231,16 @@ const NewDraft = () => {
                     </SelectContent>
                   </Select>
                   <div className="text-sm text-gray-500 mt-2">
-                    You will control one team, and the rest will be controlled by AI.
+                    You will control one team, and the rest will be controlled by friends taking turns on this device.
+                  </div>
+                </div>
+                
+                {/* Team Names */}
+                <div className="space-y-4 border p-4 rounded-lg bg-gray-50">
+                  <h3 className="font-semibold">Team Names</h3>
+                  <p className="text-sm text-gray-500">Each team must have a unique name.</p>
+                  <div className="grid gap-4">
+                    {renderTeamNameInputs()}
                   </div>
                 </div>
                 
@@ -143,6 +264,7 @@ const NewDraft = () => {
                     <li>Maximum 2 players from the same real-world team per draft team</li>
                     <li>Selected players are removed from the available pool</li>
                     <li>The draft ends when all teams have completed their 11-player roster</li>
+                    <li>Play locally with friends taking turns on this device</li>
                   </ul>
                 </div>
               </CardContent>

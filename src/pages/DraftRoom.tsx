@@ -43,26 +43,8 @@ const DraftRoom = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   
-  // Find the user's team
-  const userTeam = draft?.teams.find(team => user && team.owner.id === user.id);
-  
-  // Check if it's the user's turn
-  const isUserTurn = draft?.teams[draft?.currentTeamIndex || 0]?.owner.id === user?.id;
-  
-  // Get position status for team formation
-  const getPositionStatus = (position: string) => {
-    if (!userTeam) return "empty";
-    
-    const playerWithPosition = userTeam.players.find(p => p.specificPosition === position);
-    return playerWithPosition ? "filled" : "empty";
-  };
-  
-  // Get player in position
-  const getPlayerInPosition = (position: string) => {
-    if (!userTeam) return null;
-    
-    return userTeam.players.find(p => p.specificPosition === position);
-  };
+  // Get current team drafting
+  const currentTeam = draft?.teams[draft?.currentTeamIndex || 0];
   
   // Load draft data
   useEffect(() => {
@@ -117,12 +99,11 @@ const DraftRoom = () => {
   
   // Handle player selection
   const handleSelectPlayer = (playerId: string) => {
-    if (!draft || !draftId || !user || !isUserTurn || !selectedPosition) {
+    if (!draft || !draftId || !selectedPosition) {
       return;
     }
     
     const currentTeam = draft.teams[draft.currentTeamIndex];
-    if (currentTeam.owner.id !== user.id) return;
     
     try {
       // First get the player to check position
@@ -135,6 +116,17 @@ const DraftRoom = () => {
         toast({
           title: "Position mismatch",
           description: `This player can't play in the ${positionsMap[selectedPosition as keyof typeof positionsMap].label} position.`,
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Check if the team already has too many players from this real-world team
+      const realTeamCount = currentTeam.players.filter(p => p.team === player.team).length;
+      if (realTeamCount >= 2) {
+        toast({
+          title: "Team limit reached",
+          description: `You can only have 2 players from ${player.team} on your team.`,
           variant: "destructive",
         });
         return;
@@ -163,7 +155,7 @@ const DraftRoom = () => {
         
         toast({
           title: "Player Selected",
-          description: `You've added ${player.name} as ${positionsMap[selectedPosition as keyof typeof positionsMap].label}`,
+          description: `${currentTeam.name} added ${player.name} as ${positionsMap[selectedPosition as keyof typeof positionsMap].label}`,
         });
         
         // If the draft is now complete, redirect to view page
@@ -185,19 +177,15 @@ const DraftRoom = () => {
   };
   
   const handlePositionClick = (position: string) => {
-    if (!isUserTurn) {
-      toast({
-        title: "Not your turn",
-        description: "Please wait for your turn to select a player.",
-      });
-      return;
-    }
+    // For local multiplayer, we allow any team to select when it's their turn
+    const teamWithPosition = draft?.teams.find(team => 
+      team.players.some(p => p.specificPosition === position)
+    );
     
-    // Check if position is already filled
-    if (userTeam?.players.some(p => p.specificPosition === position)) {
+    if (teamWithPosition) {
       toast({
         title: "Position already filled",
-        description: "This position already has a player assigned.",
+        description: `${teamWithPosition.name} already selected a player for this position.`,
         variant: "destructive",
       });
       return;
@@ -206,9 +194,33 @@ const DraftRoom = () => {
     setSelectedPosition(position);
     setShowPositionSelector(true);
   };
+
+  // Get position status for team formation
+  const getPositionStatus = (position: string) => {
+    if (!draft) return "empty";
+    
+    // Check all teams for this position
+    for (const team of draft.teams) {
+      if (team.players.some(p => p.specificPosition === position)) {
+        return "filled";
+      }
+    }
+    return "empty";
+  };
   
-  // Get current team drafting
-  const currentTeam = draft?.teams[draft?.currentTeamIndex || 0];
+  // Get player in position
+  const getPlayerInPosition = (position: string) => {
+    if (!draft) return null;
+    
+    // Check all teams for this position
+    for (const team of draft.teams) {
+      const player = team.players.find(p => p.specificPosition === position);
+      if (player) {
+        return { player, team };
+      }
+    }
+    return null;
+  };
   
   if (!draft || !draftId) {
     return (
@@ -255,21 +267,13 @@ const DraftRoom = () => {
           
           {/* Current Turn Indicator */}
           <div className="bg-white p-4 rounded-lg border mb-8">
-            <h2 className="text-lg font-semibold mb-2">
-              {isUserTurn ? "It's your turn to draft!" : `Waiting for ${currentTeam?.owner.username}'s turn...`}
+            <h2 className="text-xl font-semibold mb-2">
+              {currentTeam?.name}'s Turn to Draft
             </h2>
             <div className="flex items-center">
-              <div 
-                className={`h-4 w-4 rounded-full mr-2 ${isUserTurn ? 'bg-green-500' : 'bg-amber-400'}`}
-              ></div>
+              <div className="h-4 w-4 rounded-full mr-2 bg-green-500"></div>
               <p>
-                {isUserTurn ? (
-                  <>
-                    Click on an empty position to select a player
-                  </>
-                ) : (
-                  "Another player is making a selection..."
-                )}
+                Click on an empty position to select a player
               </p>
             </div>
           </div>
@@ -308,7 +312,7 @@ const DraftRoom = () => {
                     
                     {/* Position spots */}
                     {Object.entries(positionsMap).map(([position, {label, className, color}]) => {
-                      const playerInPosition = getPlayerInPosition(position);
+                      const positionInfo = getPlayerInPosition(position);
                       const isEmpty = getPositionStatus(position) === "empty";
                       
                       return (
@@ -317,7 +321,7 @@ const DraftRoom = () => {
                           className={`absolute ${className} flex flex-col items-center cursor-pointer transition-transform hover:scale-105`}
                           onClick={() => handlePositionClick(position)}
                         >
-                          <div className={`w-14 h-14 ${color} rounded-full flex items-center justify-center shadow-md mb-2 border-2 border-gray-200`}>
+                          <div className={`w-14 h-14 ${color} rounded-full flex items-center justify-center shadow-md mb-2 border-2 ${isEmpty ? 'border-gray-200' : 'border-green-500'}`}>
                             <span className="font-bold text-sm">{position}</span>
                           </div>
                           <div className="bg-white/90 backdrop-blur-sm px-3 py-1 rounded-lg text-center max-w-[120px] shadow-sm">
@@ -325,8 +329,10 @@ const DraftRoom = () => {
                               <span className="text-gray-600 italic text-xs">Click to select</span>
                             ) : (
                               <>
-                                <div className="font-semibold text-xs truncate">{playerInPosition?.name}</div>
-                                <div className="text-[10px] text-gray-600 truncate">{playerInPosition?.team}</div>
+                                <div className="font-semibold text-xs truncate">{positionInfo?.player?.name}</div>
+                                <div className="text-[10px] text-gray-600 truncate">
+                                  {positionInfo?.player?.team} • {positionInfo?.team?.name}
+                                </div>
                               </>
                             )}
                           </div>
@@ -359,7 +365,7 @@ const DraftRoom = () => {
                         <div className="flex justify-between items-center mb-3">
                           <h3 className="font-semibold">
                             {team.name}
-                            {team.owner.id === user?.id && " (You)"}
+                            {team.owner.id === user?.id && " (Owner)"}
                           </h3>
                           {isCurrentTurn && (
                             <Badge>Current Turn</Badge>
@@ -429,7 +435,9 @@ const DraftRoom = () => {
             <CardHeader className="border-b">
               <div className="flex justify-between items-center">
                 <div>
-                  <CardTitle>Select {positionsMap[selectedPosition as keyof typeof positionsMap].label}</CardTitle>
+                  <CardTitle>
+                    {currentTeam?.name} selecting {positionsMap[selectedPosition as keyof typeof positionsMap].label}
+                  </CardTitle>
                   <CardDescription>
                     Choose a player for the {selectedPosition} position
                   </CardDescription>

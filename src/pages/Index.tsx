@@ -64,7 +64,7 @@ const Index = () => {
                 </div>
                 <h3 className="text-2xl font-semibold mb-4">Draft Your Squad</h3>
                 <p className="text-gray-600">
-                  Take turns selecting players position by position to build your 4-3-3 formation. Remember, you can only select 2 players from the same real team.
+                  Take turns with your friends selecting players position by position to build your 4-3-3 formation on the same device.
                 </p>
               </div>
               
@@ -74,7 +74,7 @@ const Index = () => {
                 </div>
                 <h3 className="text-2xl font-semibold mb-4">Share Your Team</h3>
                 <p className="text-gray-600">
-                  When the draft is complete, view your team in a realistic 4-3-3 formation on the pitch and share with friends using a custom link.
+                  When the draft is complete, view all teams in a realistic 4-3-3 formation on the pitch and share results with your friends.
                 </p>
               </div>
             </div>
@@ -162,7 +162,7 @@ const Index = () => {
           <div className="container mx-auto px-4 text-center">
             <h2 className="text-3xl font-bold mb-6">Ready to Start Your Draft?</h2>
             <p className="text-xl mb-8 max-w-2xl mx-auto">
-              Create a draft with friends and build your ultimate football team today!
+              Gather your friends around one screen and build your ultimate football teams together!
             </p>
             {isAuthenticated ? (
               <Link to="/dashboard">
