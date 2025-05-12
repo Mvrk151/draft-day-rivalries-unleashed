@@ -74,6 +74,13 @@ export const mockPlayers: FootballPlayer[] = [
   { id: "p48", name: "Victor Osimhen", position: "FWD", team: "Napoli", league: "Serie A" },
   { id: "p49", name: "Rafael Leão", position: "FWD", team: "AC Milan", league: "Serie A" },
   { id: "p50", name: "Fikayo Tomori", position: "DEF", team: "AC Milan", league: "Serie A" },
+  
+  // 5 New Players Added
+  { id: "p51", name: "Nicolò Barella", position: "MID", team: "Inter Milan", league: "Serie A" },
+  { id: "p52", name: "Joshua Kimmich", position: "MID", team: "Bayern Munich", league: "Bundesliga" },
+  { id: "p53", name: "Marcus Rashford", position: "FWD", team: "Manchester United", league: "Premier League" },
+  { id: "p54", name: "Matthijs de Ligt", position: "DEF", team: "Bayern Munich", league: "Bundesliga" },
+  { id: "p55", name: "Achraf Hakimi", position: "DEF", team: "PSG", league: "Ligue 1" },
 ];
 
 // Mock drafts (empty initially)
