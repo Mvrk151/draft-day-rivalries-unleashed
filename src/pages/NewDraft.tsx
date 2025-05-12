@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -85,10 +84,10 @@ const NewDraft = () => {
     setIsSubmitting(true);
     
     try {
-      // Check the createDraft function signature and provide the correct arguments
+      // Fix: Change 'gameMode' to 'mode' to match the parameter type
       const draft = createDraft({
         name: draftName || `${user.username}'s Draft`,
-        gameMode,
+        mode: gameMode, // Changed from gameMode to mode
         numberOfTeams: numTeams,
         userId: user.id,
         userTeamName: updatedTeamNames.userTeam || `${user.username}'s Team`,
