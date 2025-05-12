@@ -1,4 +1,3 @@
-
 import { Draft, FootballPlayer, DraftTeam } from "@/types";
 
 // Mock football players
@@ -81,6 +80,36 @@ export const mockPlayers: FootballPlayer[] = [
   { id: "p53", name: "Marcus Rashford", position: "FWD", team: "Manchester United", league: "Premier League" },
   { id: "p54", name: "Matthijs de Ligt", position: "DEF", team: "Bayern Munich", league: "Bundesliga" },
   { id: "p55", name: "Achraf Hakimi", position: "DEF", team: "PSG", league: "Ligue 1" },
+  
+  // 20 New Premier League Players (5 for each position)
+  
+  // Premier League Goalkeepers (GK)
+  { id: "p56", name: "Alisson Becker", position: "GK", team: "Liverpool", league: "Premier League" },
+  { id: "p57", name: "Jordan Pickford", position: "GK", team: "Everton", league: "Premier League" },
+  { id: "p58", name: "Nick Pope", position: "GK", team: "Newcastle United", league: "Premier League" },
+  { id: "p59", name: "Emiliano Martínez", position: "GK", team: "Aston Villa", league: "Premier League" },
+  { id: "p60", name: "Robert Sánchez", position: "GK", team: "Chelsea", league: "Premier League" },
+  
+  // Premier League Defenders (DEF)
+  { id: "p61", name: "Ruben Dias", position: "DEF", team: "Manchester City", league: "Premier League" },
+  { id: "p62", name: "Kieran Trippier", position: "DEF", team: "Newcastle United", league: "Premier League" },
+  { id: "p63", name: "Ben Chilwell", position: "DEF", team: "Chelsea", league: "Premier League" },
+  { id: "p64", name: "Cristian Romero", position: "DEF", team: "Tottenham", league: "Premier League" },
+  { id: "p65", name: "Gabriel Magalhães", position: "DEF", team: "Arsenal", league: "Premier League" },
+  
+  // Premier League Midfielders (MID)
+  { id: "p66", name: "Bernardo Silva", position: "MID", team: "Manchester City", league: "Premier League" },
+  { id: "p67", name: "Mason Mount", position: "MID", team: "Manchester United", league: "Premier League" },
+  { id: "p68", name: "James Maddison", position: "MID", team: "Tottenham", league: "Premier League" },
+  { id: "p69", name: "Moises Caicedo", position: "MID", team: "Chelsea", league: "Premier League" },
+  { id: "p70", name: "Youri Tielemans", position: "MID", team: "Aston Villa", league: "Premier League" },
+  
+  // Premier League Forwards (FWD)
+  { id: "p71", name: "Darwin Núñez", position: "FWD", team: "Liverpool", league: "Premier League" },
+  { id: "p72", name: "Gabriel Jesus", position: "FWD", team: "Arsenal", league: "Premier League" },
+  { id: "p73", name: "Ollie Watkins", position: "FWD", team: "Aston Villa", league: "Premier League" },
+  { id: "p74", name: "Alexander Isak", position: "FWD", team: "Newcastle United", league: "Premier League" },
+  { id: "p75", name: "Nicolas Jackson", position: "FWD", team: "Chelsea", league: "Premier League" },
 ];
 
 // Mock drafts (empty initially)
