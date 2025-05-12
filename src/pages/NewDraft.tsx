@@ -85,16 +85,17 @@ const NewDraft = () => {
     setIsSubmitting(true);
     
     try {
-      const draft = createDraft(
-        draftName || `${user.username}'s Draft`,
+      // Check the createDraft function signature and provide the correct arguments
+      const draft = createDraft({
+        name: draftName || `${user.username}'s Draft`,
         gameMode,
-        numTeams,
-        user.id,
-        updatedTeamNames.userTeam || `${user.username}'s Team`,
-        Object.entries(updatedTeamNames)
+        numberOfTeams: numTeams,
+        userId: user.id,
+        userTeamName: updatedTeamNames.userTeam || `${user.username}'s Team`,
+        opponentTeamNames: Object.entries(updatedTeamNames)
           .filter(([key]) => key !== 'userTeam')
           .map(([_, name]) => name)
-      );
+      });
       
       // Navigate to the draft room
       navigate(`/draft/room/${draft.id}`);

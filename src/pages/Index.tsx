@@ -1,7 +1,7 @@
 
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Football, Users } from "lucide-react";
+import { Swords, Users } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { useAuth } from "@/contexts/AuthContext";
@@ -27,7 +27,7 @@ const Index = () => {
             {isAuthenticated ? (
               <Link to="/draft/new">
                 <Button size="lg" className="bg-team-gold hover:bg-amber-500 text-black font-bold px-8 py-6 text-lg">
-                  <Football className="mr-2 h-6 w-6" />
+                  <Swords className="mr-2 h-6 w-6" />
                   Start New Draft
                 </Button>
               </Link>
