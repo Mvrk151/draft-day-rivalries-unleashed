@@ -178,14 +178,14 @@ const DraftRoom = () => {
   
   const handlePositionClick = (position: string) => {
     // For local multiplayer, we allow any team to select when it's their turn
-    const teamWithPosition = draft?.teams.find(team => 
-      team.players.some(p => p.specificPosition === position)
-    );
+    // Fix: Check if the position is filled by the CURRENT team, not by any team
+    const currentTeam = draft?.teams[draft?.currentTeamIndex || 0];
+    const positionFilledByCurrentTeam = currentTeam?.players.some(p => p.specificPosition === position);
     
-    if (teamWithPosition) {
+    if (positionFilledByCurrentTeam) {
       toast({
         title: "Position already filled",
-        description: `${teamWithPosition.name} already selected a player for this position.`,
+        description: `${currentTeam.name} already selected a player for this position.`,
         variant: "destructive",
       });
       return;
@@ -199,11 +199,10 @@ const DraftRoom = () => {
   const getPositionStatus = (position: string) => {
     if (!draft) return "empty";
     
-    // Check all teams for this position
-    for (const team of draft.teams) {
-      if (team.players.some(p => p.specificPosition === position)) {
-        return "filled";
-      }
+    // Fix: Check only the current team for this position, not all teams
+    const currentTeam = draft.teams[draft.currentTeamIndex];
+    if (currentTeam.players.some(p => p.specificPosition === position)) {
+      return "filled";
     }
     return "empty";
   };
@@ -212,12 +211,11 @@ const DraftRoom = () => {
   const getPlayerInPosition = (position: string) => {
     if (!draft) return null;
     
-    // Check all teams for this position
-    for (const team of draft.teams) {
-      const player = team.players.find(p => p.specificPosition === position);
-      if (player) {
-        return { player, team };
-      }
+    // Fix: Only get player from current team for this position, not all teams
+    const currentTeam = draft.teams[draft.currentTeamIndex];
+    const player = currentTeam.players.find(p => p.specificPosition === position);
+    if (player) {
+      return { player, team: currentTeam };
     }
     return null;
   };
