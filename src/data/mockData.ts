@@ -1,3 +1,4 @@
+
 import { Draft, FootballPlayer, DraftTeam } from "@/types";
 
 // Mock football players
@@ -98,21 +99,31 @@ export const getPlayersByMode = (mode: string): FootballPlayer[] => {
 };
 
 // Function to create a new draft
-export const createDraft = (
-  name: string,
-  mode: Draft['mode'],
-  numberOfTeams: number,
-  userId: string,
-  username: string
-): Draft => {
+export const createDraft = ({
+  name,
+  mode,
+  numberOfTeams,
+  userId,
+  userTeamName,
+  opponentTeamNames = []
+}: {
+  name: string;
+  mode: Draft['mode'];
+  numberOfTeams: number;
+  userId: string;
+  userTeamName: string;
+  opponentTeamNames?: string[];
+}): Draft => {
   const draft: Draft = {
     id: Math.random().toString(36).substr(2, 9),
     name,
     mode,
     teams: Array(numberOfTeams).fill(null).map((_, i) => ({
       id: Math.random().toString(36).substr(2, 9),
-      name: i === 0 ? `${username}'s Team` : `Team ${i + 1}`,
-      owner: i === 0 ? { id: userId, username, email: '' } : { id: `user-${i}`, username: `Player ${i}`, email: '' },
+      name: i === 0 ? userTeamName : opponentTeamNames[i-1] || `Team ${i + 1}`,
+      owner: i === 0 
+        ? { id: userId, username: userTeamName.replace(/'s Team$/, ''), email: '' } 
+        : { id: `user-${i}`, username: `Player ${i}`, email: '' },
       players: []
     })),
     status: 'setup',
