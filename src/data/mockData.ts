@@ -110,6 +110,66 @@ export const mockPlayers: FootballPlayer[] = [
   { id: "p73", name: "Ollie Watkins", position: "FWD", team: "Aston Villa", league: "Premier League" },
   { id: "p74", name: "Alexander Isak", position: "FWD", team: "Newcastle United", league: "Premier League" },
   { id: "p75", name: "Nicolas Jackson", position: "FWD", team: "Chelsea", league: "Premier League" },
+  
+  // Champions League - 5 players for each position
+  
+  // Champions League - Goalkeepers (GK)
+  { id: "p76", name: "Jan Oblak", position: "GK", team: "Atletico Madrid", league: "La Liga" },
+  { id: "p77", name: "Andre Onana", position: "GK", team: "Manchester United", league: "Premier League" },
+  { id: "p78", name: "Gregor Kobel", position: "GK", team: "Borussia Dortmund", league: "Bundesliga" },
+  { id: "p79", name: "Mike Maignan", position: "GK", team: "AC Milan", league: "Serie A" },
+  { id: "p80", name: "Yann Sommer", position: "GK", team: "Inter Milan", league: "Serie A" },
+  
+  // Champions League - Defenders (DEF)
+  { id: "p81", name: "Josko Gvardiol", position: "DEF", team: "Manchester City", league: "Premier League" },
+  { id: "p82", name: "Marquinhos", position: "DEF", team: "PSG", league: "Ligue 1" },
+  { id: "p83", name: "Eder Militao", position: "DEF", team: "Real Madrid", league: "La Liga" },
+  { id: "p84", name: "Alessandro Bastoni", position: "DEF", team: "Inter Milan", league: "Serie A" },
+  { id: "p85", name: "Alphonso Davies", position: "DEF", team: "Bayern Munich", league: "Bundesliga" },
+  
+  // Champions League - Midfielders (MID)
+  { id: "p86", name: "Toni Kroos", position: "MID", team: "Real Madrid", league: "La Liga" },
+  { id: "p87", name: "Frenkie de Jong", position: "MID", team: "Barcelona", league: "La Liga" },
+  { id: "p88", name: "Vitinha", position: "MID", team: "PSG", league: "Ligue 1" },
+  { id: "p89", name: "Florian Wirtz", position: "MID", team: "Bayer Leverkusen", league: "Bundesliga" },
+  { id: "p90", name: "Nicolo Barella", position: "MID", team: "Inter Milan", league: "Serie A" },
+  
+  // Champions League - Forwards (FWD)
+  { id: "p91", name: "Antoine Griezmann", position: "FWD", team: "Atletico Madrid", league: "La Liga" },
+  { id: "p92", name: "Khvicha Kvaratskhelia", position: "FWD", team: "Napoli", league: "Serie A" },
+  { id: "p93", name: "Serge Gnabry", position: "FWD", team: "Bayern Munich", league: "Bundesliga" },
+  { id: "p94", name: "Julian Alvarez", position: "FWD", team: "Manchester City", league: "Premier League" },
+  { id: "p95", name: "Cody Gakpo", position: "FWD", team: "Liverpool", league: "Premier League" },
+  
+  // Top 5 Leagues - 5 players for each position (excluding already listed players)
+  
+  // Top 5 Leagues - Goalkeepers (GK)
+  { id: "p96", name: "Wojciech Szczęsny", position: "GK", team: "Juventus", league: "Serie A" },
+  { id: "p97", name: "Unai Simon", position: "GK", team: "Athletic Bilbao", league: "La Liga" },
+  { id: "p98", name: "Keylor Navas", position: "GK", team: "Napoli", league: "Serie A" },
+  { id: "p99", name: "Anthony Lopes", position: "GK", team: "Lyon", league: "Ligue 1" },
+  { id: "p100", name: "Lukas Hradecky", position: "GK", team: "Bayer Leverkusen", league: "Bundesliga" },
+  
+  // Top 5 Leagues - Defenders (DEF)
+  { id: "p101", name: "Micky van de Ven", position: "DEF", team: "Tottenham", league: "Premier League" },
+  { id: "p102", name: "Jonathan Tah", position: "DEF", team: "Bayer Leverkusen", league: "Bundesliga" },
+  { id: "p103", name: "Clement Lenglet", position: "DEF", team: "Aston Villa", league: "Premier League" },
+  { id: "p104", name: "Mario Hermoso", position: "DEF", team: "Atletico Madrid", league: "La Liga" },
+  { id: "p105", name: "Benjamin Pavard", position: "DEF", team: "Inter Milan", league: "Serie A" },
+  
+  // Top 5 Leagues - Midfielders (MID)
+  { id: "p106", name: "Pedri", position: "MID", team: "Barcelona", league: "La Liga" },
+  { id: "p107", name: "Hakan Çalhanoğlu", position: "MID", team: "Inter Milan", league: "Serie A" },
+  { id: "p108", name: "Martin Ødegaard", position: "MID", team: "Arsenal", league: "Premier League" },
+  { id: "p109", name: "Aurelien Tchouameni", position: "MID", team: "Real Madrid", league: "La Liga" },
+  { id: "p110", name: "Bruno Guimaraes", position: "MID", team: "Newcastle", league: "Premier League" },
+  
+  // Top 5 Leagues - Forwards (FWD)
+  { id: "p111", name: "Lautaro Martinez", position: "FWD", team: "Inter Milan", league: "Serie A" },
+  { id: "p112", name: "Victor Boniface", position: "FWD", team: "Bayer Leverkusen", league: "Bundesliga" },
+  { id: "p113", name: "Kerem Aktürkoğlu", position: "FWD", team: "Lazio", league: "Serie A" },
+  { id: "p114", name: "Christopher Nkunku", position: "FWD", team: "Chelsea", league: "Premier League" },
+  { id: "p115", name: "Jonathan David", position: "FWD", team: "Lille", league: "Ligue 1" },
 ];
 
 // Mock drafts (empty initially)
@@ -124,7 +184,9 @@ export const getPlayersByMode = (mode: string): FootballPlayer[] => {
       // For this demo, we'll consider certain teams as being in the Champions League
       const championsLeagueTeams = [
         'Manchester City', 'Liverpool', 'Real Madrid', 'Barcelona', 
-        'Bayern Munich', 'Inter Milan', 'PSG', 'Borussia Dortmund'
+        'Bayern Munich', 'Inter Milan', 'PSG', 'Borussia Dortmund',
+        'Manchester United', 'AC Milan', 'Napoli', 'Atletico Madrid',
+        'Bayer Leverkusen'
       ];
       return mockPlayers.filter(player => championsLeagueTeams.includes(player.team));
     case 'top_5_leagues':
