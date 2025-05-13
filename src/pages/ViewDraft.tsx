@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Instagram } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { useToast } from "@/components/ui/use-toast";
@@ -92,11 +93,22 @@ const ViewDraft = () => {
     }
   }, [draftId]);
   
-  const handleCopyLink = () => {
-    navigator.clipboard.writeText(shareUrl);
+  const handleShareToInstagram = () => {
+    // Create a message for Instagram sharing
+    const shareText = draft ? 
+      `Check out our ${draft.mode.replace('_', ' ')} Fantasy Draft: ${draft.name}! ⚽️ ${shareUrl}` : 
+      `Check out this Fantasy Football Draft! ${shareUrl}`;
+      
+    // On mobile devices, deep links to Instagram stories might work
+    // But for web, we can copy the text and prompt the user to paste in Instagram
+    navigator.clipboard.writeText(shareText);
+    
+    // Open Instagram in a new tab
+    window.open('https://www.instagram.com/', '_blank');
+    
     toast({
-      title: "Link copied!",
-      description: "Share this link with your friends.",
+      title: "Ready to share on Instagram!",
+      description: "Text copied to clipboard. Paste it in your Instagram post or story.",
     });
   };
   
@@ -149,17 +161,15 @@ const ViewDraft = () => {
             <CardContent className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <h2 className="font-semibold text-lg mb-1">Share Draft Results</h2>
-                <p className="text-sm text-gray-600">Share this link with your friends so they can see the drafted teams.</p>
+                <p className="text-sm text-gray-600">Share this link with your friends on Instagram</p>
               </div>
-              <div className="flex gap-2 items-center">
-                <input 
-                  type="text" 
-                  value={shareUrl} 
-                  readOnly 
-                  className="border rounded p-2 text-sm flex-1 bg-gray-50"
-                />
-                <Button onClick={handleCopyLink}>Copy</Button>
-              </div>
+              <Button 
+                onClick={handleShareToInstagram}
+                className="flex items-center gap-2 bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 hover:from-purple-600 hover:via-pink-600 hover:to-orange-600"
+              >
+                <Instagram size={18} />
+                <span>Share to Instagram</span>
+              </Button>
             </CardContent>
           </Card>
           
