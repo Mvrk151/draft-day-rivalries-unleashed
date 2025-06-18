@@ -3,16 +3,19 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { useAuth } from "@/contexts/AuthContext";
 import { Draft } from "@/types";
 import { mockDrafts } from "@/data/mockData";
-import { Plus } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 const Dashboard = () => {
   const { user } = useAuth();
   const [userDrafts, setUserDrafts] = useState<Draft[]>([]);
+  const { toast } = useToast();
 
   useEffect(() => {
     // Filter drafts to only show ones where the user is a participant
@@ -23,6 +26,14 @@ const Dashboard = () => {
       setUserDrafts(filteredDrafts);
     }
   }, [user]);
+
+  const handleDeleteDraft = (draftId: string) => {
+    setUserDrafts(prevDrafts => prevDrafts.filter(draft => draft.id !== draftId));
+    toast({
+      title: "Draft deleted",
+      description: "The draft has been successfully deleted.",
+    });
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -53,7 +64,36 @@ const Dashboard = () => {
             {userDrafts.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {userDrafts.map((draft) => (
-                  <Card key={draft.id} className="overflow-hidden">
+                  <Card key={draft.id} className="overflow-hidden relative">
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="absolute top-2 right-2 z-10 h-8 w-8 hover:bg-red-100 hover:text-red-600"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete Draft</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Are you sure you want to delete "{draft.name}"? This action cannot be undone.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction 
+                            onClick={() => handleDeleteDraft(draft.id)}
+                            className="bg-red-600 hover:bg-red-700"
+                          >
+                            Delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+
                     <CardHeader className="bg-team-blue text-white">
                       <CardTitle>{draft.name}</CardTitle>
                       <CardDescription className="text-gray-200">
